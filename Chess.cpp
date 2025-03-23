@@ -3,6 +3,8 @@
 
 #include "framework.h"
 #include "Chess.h"
+#include <iostream>
+#include <String>
 
 #define MAX_LOADSTRING 100
 
@@ -26,7 +28,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: Place code here.
-
+    
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_CHESS, szWindowClass, MAX_LOADSTRING);
@@ -97,8 +99,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 816, 859, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
    {
@@ -146,7 +147,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
+            SelectObject(hdc, GetStockObject(BLACK_BRUSH));
             // TODO: Add any drawing code that uses hdc here...
+            for (int i = 0; i < 8; i++)
+            {
+                bool a = ((i % 2) == 0) ? true : false;
+                for (int j = 0; j < 8; j++)
+                {
+                    if (a)
+                    {
+                        //OutputDebugStringA(("a " + std::to_string(i) + "\n").c_str());
+                        if ((j % 2) != 0)
+                        {
+                            
+                            Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
+                        }
+                    }
+                    else
+                    {
+                        if ((j % 2) == 0)
+                        {
+                            //OutputDebugString(L"end");
+                            Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
+                        }
+                    }
+                    
+                }
+            }
             EndPaint(hWnd, &ps);
         }
         break;
