@@ -5,6 +5,7 @@
 #include "Chess.h"
 #include <iostream>
 #include <String>
+#include "Sprite.h"
 
 #define MAX_LOADSTRING 100
 
@@ -56,8 +57,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     return (int) msg.wParam;
 }
-
-
 
 //
 //  FUNCTION: MyRegisterClass()
@@ -145,10 +144,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_PAINT:
         {
+        Sprite sp = Sprite(1,1, false);
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
+
+            //HDC bb = CreateCompatibleDC(hdc);
+            //HBRUSH blk = (HBRUSH) SelectObject(hdc, GetStockObject(BLACK_BRUSH));
             SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-            // TODO: Add any drawing code that uses hdc here...
+            //// TODO: Add any drawing code that uses hdc here...
             for (int i = 0; i < 8; i++)
             {
                 bool a = ((i % 2) == 0) ? true : false;
@@ -174,6 +177,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     
                 }
             }
+            //BitBlt(hdc, 0, 0, 800, 800, bb, 0, 0, SRCCOPY);
+            //DeleteObject(blk);
+            //DeleteDC(bb);
+            //HDC spriteDC = CreateCompatibleDC(hdc);
+            sp.drawSprite(0,0,hdc,1,1);
             EndPaint(hWnd, &ps);
         }
         break;
@@ -205,3 +213,4 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     }
     return (INT_PTR)FALSE;
 }
+
