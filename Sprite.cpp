@@ -83,43 +83,44 @@ Sprite Sprite::getDefaultSprite(int col, int row)
     }
     int x, y;
     bool boev = ((col + row) % 2 == 0) ? false : true;
+    switch (col)
+    {
+    case 0:
+        x = 0;
+        break;
+
+    case 1:
+        x = 1;
+        break;
+
+    case 2:
+        x = 4;
+        break;
+
+    case 3:
+        x = 2;
+        break;
+
+    case 4:
+        x = 3;
+        break;
+
+    case 5:
+        x = 4;
+        break;
+
+    case 6:
+        x = 1;
+        break;
+
+    case 7:
+        x = 0;
+        break;
+    }
+
     switch (row) 
     {
     case 0:
-        switch (col)
-        {
-        case 0:
-            x = 0;
-            break;
-
-        case 1:
-            x = 1;
-            break;
-
-        case 2:
-            x = 4;
-            break;
-
-        case 3:
-            x = 2;
-            break;
-
-        case 4:
-            x = 3;
-            break;
-
-        case 5:
-            x = 4;
-            break;
-
-        case 6:
-            x = 1;
-            break;
-
-        case 7:
-            x = 0;
-            break;
-        }
         y = 0;
         break;
 
@@ -134,40 +135,6 @@ Sprite Sprite::getDefaultSprite(int col, int row)
         break;
 
     case 7:
-        switch (col)
-        {
-        case 0:
-            x = 0;
-            break;
-
-        case 1:
-            x = 1;
-            break;
-
-        case 2:
-            x = 4;
-            break;
-
-        case 3:
-            x = 2;
-            break;
-
-        case 4:
-            x = 3;
-            break;
-
-        case 5:
-            x = 4;
-            break;
-
-        case 6:
-            x = 1;
-            break;
-
-        case 7:
-            x = 0;
-            break;
-        }
         y = 1;
         break;
     }
