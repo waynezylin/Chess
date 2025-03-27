@@ -1,0 +1,2 @@
+D:\Coding\Chess\Chess\x64\Debug\Chess.exe
+C:\Users\Wayne\Documents\GitHub\Chess\x64\Debug\Chess.exe

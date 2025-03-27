@@ -130,10 +130,12 @@
     <ClInclude Include="Chess.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="Sprite.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Chess.cpp" />
+    <ClCompile Include="Sprite.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Chess.rc" />
@@ -141,6 +143,7 @@
   <ItemGroup>
     <Image Include="Chess.ico" />
     <Image Include="small.ico" />
+    <Image Include="sprite.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
