@@ -1,18 +1,28 @@
 #include "Sprite.h"
+#include "resource.h"
 #include <iostream>
-//#include "framework.h";
+#include <String>
+
 #pragma comment(lib, "Msimg32.lib")
 
 using namespace std;
 
+Sprite::Sprite()
+{
+    empty = true;
+    spriteBrush = HBRUSH();
+}
+
 Sprite::Sprite(int col, int row, bool bgBlk)
 {
+    empty = false;
     Sprite::spriteBrush = getSpriteBrush(col, row, bgBlk);
 }
 
 HBRUSH Sprite::getSpriteBrush(int col, int row, bool bgBlk)
 {
-    HBITMAP spriteSheet = (HBITMAP)LoadImage(NULL, L"d:\\Coding\\Chess\\sprite.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    //HBITMAP spriteSheet = (HBITMAP)LoadImage(NULL, MAKEINTRESOURCE(IDB_SPRITESHEET), IMAGE_BITMAP, 0, 0, 0);
+    HBITMAP spriteSheet = LoadBitmap((HINSTANCE)GetModuleHandle(_T("Chess.exe")), MAKEINTRESOURCE(IDB_SPRITESHEET));
 
     HDC memDC, dstDC, curDC;
     HBITMAP oldMemBmp, oldDstBmp, dstBmp;
@@ -50,16 +60,121 @@ HBRUSH Sprite::getSpriteBrush(int col, int row, bool bgBlk)
     return result;
 }
 
-void Sprite::drawSprite(int x, int y, HDC paintDC, int numCols, int numRows)
+void Sprite::drawSprite(int x, int y, HDC paintDC)
 {
     RECT curDstRect;
 
-    curDstRect.left = x;
-    curDstRect.top = y;
+    curDstRect.left = x*100;
+    curDstRect.top = y*100;
     curDstRect.right = curDstRect.left + 100;
     curDstRect.bottom = curDstRect.top + 100;
     SelectObject(paintDC, spriteBrush);
     FillRect(paintDC, &curDstRect, spriteBrush);
     DeleteObject(spriteBrush);
 
+}
+
+Sprite Sprite::getDefaultSprite(int col, int row)
+{
+    OutputDebugStringA(("col: " + std::to_string(col) + " | row: " + std::to_string(row) + "\n").c_str());
+    if (row > 1 && row < 6)
+    {
+        return Sprite();
+    }
+    int x, y;
+    bool boev = ((col + row) % 2 == 0) ? false : true;
+    switch (row) 
+    {
+    case 0:
+        switch (col)
+        {
+        case 0:
+            x = 0;
+            break;
+
+        case 1:
+            x = 1;
+            break;
+
+        case 2:
+            x = 4;
+            break;
+
+        case 3:
+            x = 2;
+            break;
+
+        case 4:
+            x = 3;
+            break;
+
+        case 5:
+            x = 4;
+            break;
+
+        case 6:
+            x = 1;
+            break;
+
+        case 7:
+            x = 0;
+            break;
+        }
+        y = 0;
+        break;
+
+    case 1:
+        y = 0;
+        x = 5;
+        break;
+#
+    case 6:
+        y = 1;
+        x = 5;
+        break;
+
+    case 7:
+        switch (col)
+        {
+        case 0:
+            x = 0;
+            break;
+
+        case 1:
+            x = 1;
+            break;
+
+        case 2:
+            x = 4;
+            break;
+
+        case 3:
+            x = 2;
+            break;
+
+        case 4:
+            x = 3;
+            break;
+
+        case 5:
+            x = 4;
+            break;
+
+        case 6:
+            x = 1;
+            break;
+
+        case 7:
+            x = 0;
+            break;
+        }
+        y = 1;
+        break;
+    }
+    return Sprite(x, y, boev);
+}
+
+bool Sprite::isEmpty()
+{
+    return empty;
 }

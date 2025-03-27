@@ -143,6 +143,7 @@
   <ItemGroup>
     <Image Include="Chess.ico" />
     <Image Include="small.ico" />
+    <Image Include="sprite.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

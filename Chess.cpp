@@ -13,6 +13,7 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+bool first = true;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -144,25 +145,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_PAINT:
         {
-        Sprite sp = Sprite(1,1, false);
+        if (first)
+        {
+            Sprite sp;
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
             //HDC bb = CreateCompatibleDC(hdc);
             //HBRUSH blk = (HBRUSH) SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-            SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+            
             //// TODO: Add any drawing code that uses hdc here...
             for (int i = 0; i < 8; i++)
             {
                 bool a = ((i % 2) == 0) ? true : false;
                 for (int j = 0; j < 8; j++)
                 {
+                    SelectObject(hdc, GetStockObject(BLACK_BRUSH));
                     if (a)
                     {
                         //OutputDebugStringA(("a " + std::to_string(i) + "\n").c_str());
                         if ((j % 2) != 0)
                         {
-                            
+
                             Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
                         }
                     }
@@ -174,15 +178,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
                         }
                     }
-                    
+                    sp = Sprite::getDefaultSprite(i, j);
+                    if (!sp.isEmpty())
+                    {
+                        sp.drawSprite(i, j, hdc);
+                    }
                 }
             }
             //BitBlt(hdc, 0, 0, 800, 800, bb, 0, 0, SRCCOPY);
             //DeleteObject(blk);
             //DeleteDC(bb);
             //HDC spriteDC = CreateCompatibleDC(hdc);
-            sp.drawSprite(0,0,hdc,1,1);
+            //sp = Sprite(0, 0, false);
+            //sp.drawSprite(4, 0, hdc);
             EndPaint(hWnd, &ps);
+            first = false;
+        }
         }
         break;
     case WM_DESTROY:
