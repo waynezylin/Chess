@@ -76,7 +76,7 @@ void Sprite::drawSprite(int x, int y, HDC paintDC)
 
 Sprite Sprite::getDefaultSprite(int col, int row)
 {
-    OutputDebugStringA(("col: " + std::to_string(col) + " | row: " + std::to_string(row) + "\n").c_str());
+    //OutputDebugStringA(("col: " + std::to_string(col) + " | row: " + std::to_string(row) + "\n").c_str());
     if (row > 1 && row < 6)
     {
         return Sprite();
