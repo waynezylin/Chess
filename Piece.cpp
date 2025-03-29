@@ -2,6 +2,18 @@
 
 using namespace std;
 
+Piece::Piece()
+{
+}
+
+Piece::Piece(int x, int y, bool isBlack, string type)
+{
+	Piece::x = x;
+	Piece::y = y;
+	Piece::isBlk = isBlack;
+	Piece::type = type;
+}
+
 int Piece::getX()
 {
 	return x;
@@ -12,9 +24,9 @@ int Piece::getY()
 	return y;
 }
 
-string Piece::getColour()
+bool Piece::isBlack()
 {
-	return colour;
+	return isBlk;
 }
 
 string Piece::getType()
@@ -28,4 +40,10 @@ void Piece::promote(string type) //do not give player the option to reselect paw
 	{
 		Piece::type = type;
 	}
+}
+
+bool Piece::isBgBlk()
+{
+	bool a = ((x + y) % 2 == 0) ? false : true;
+	return a;
 }
