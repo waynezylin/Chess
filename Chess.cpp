@@ -6,6 +6,7 @@
 #include <iostream>
 #include <String>
 #include "Sprite.h"
+#include "Game.h"
 
 #define MAX_LOADSTRING 100
 
@@ -14,6 +15,8 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 bool first = true;
+Game gameHandler = Game();
+POINT mousePos;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -145,16 +148,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_PAINT:
         {
-        if (first)
-        {
-            Sprite sp;
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
 
-            //HDC bb = CreateCompatibleDC(hdc);
-            //HBRUSH blk = (HBRUSH) SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+        RECT window;
+        window.top = 0;
+        window.left = 0;
+        window.bottom = 800;
+        window.right = 800;
+        InvalidateRect(hWnd, &window, true);
+
+        //OutputDebugStringA("paint\n");
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+
+        
+                //HDC bb = CreateCompatibleDC(hdc);
+                //HBRUSH blk = (HBRUSH) SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+        
+
+
+                //// TODO: Add any drawing code that uses hdc here...
+        if (first || gameHandler.checkTC())
+        {
             
-            //// TODO: Add any drawing code that uses hdc here...
+            
+            //ValidateRect(hWnd, &window);
+
+
             for (int i = 0; i < 8; i++)
             {
                 bool a = ((i % 2) == 0) ? true : false;
@@ -178,27 +197,104 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
                         }
                     }
-                    sp = Sprite::getDefaultSprite(i, j);
-                    if (!sp.isEmpty())
-                    {
-                        sp.drawSprite(i, j, hdc);
-                    }
                 }
             }
-            //BitBlt(hdc, 0, 0, 800, 800, bb, 0, 0, SRCCOPY);
-            //DeleteObject(blk);
-            //DeleteDC(bb);
-            //HDC spriteDC = CreateCompatibleDC(hdc);
-            //sp = Sprite(0, 0, false);
-            //sp.drawSprite(4, 0, hdc);
-            EndPaint(hWnd, &ps);
             first = false;
+
+
+
+            //if (gameHandler.checkPC())
+            {
+                Sprite sp;
+                Piece temp;
+                for (int b = 0; b < gameHandler.getBL(); b++)
+                {
+                    temp = gameHandler.getBlackPieces()[b];
+                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), temp.isBgBlk());
+                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
+                }
+                for (int w = 0; w < gameHandler.getWL(); w++)
+                {
+                    temp = gameHandler.getWhitePieces()[w];
+                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), temp.isBgBlk());
+                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
+                }
+                gameHandler.resetPC();
+
+            }
+
+            //if (gameHandler.checkTC())
+            {
+                //OutputDebugStringA("bleep\n");
+
+                /*RECT pr;
+                pr.left = gameHandler.getPrevTile().x * 100;
+                pr.top = gameHandler.getPrevTile().y * 100;
+                pr.right = pr.left + 100;
+                pr.bottom = pr.top + 100;
+                InvalidateRect(hWnd, &pr, true);
+                HBRUSH p1 = ((gameHandler.getPrevTile().x + gameHandler.getPrevTile().y) % 2 == 0) ? CreateSolidBrush(RGB(255, 255, 255)) : CreateSolidBrush(RGB(0, 0, 0));*/
+
+                //Rectangle(hdc, pr.left, pr.top, pr.right, pr.bottom);
+
+                HBRUSH p = CreateSolidBrush(RGB(255, 0, 0));
+
+                RECT r;
+                r.left = gameHandler.getSelectedTile().x * 100;
+                r.top = gameHandler.getSelectedTile().y * 100;
+                r.right = r.left + 100;
+                r.bottom = r.top + 100;
+                //InvalidateRect(hWnd, &r, false);
+
+                //SelectObject(hdc, p1);
+                //FillRect(hdc, &pr, p1);
+
+                SelectObject(hdc, p);
+                FrameRect(hdc, &r, p);
+
+                DeleteObject(p);
+                //DeleteObject(p1);
+                gameHandler.resetTile();
+            }
+            
+
         }
+
+        EndPaint(hWnd, &ps);
         }
         break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+
+    case WM_MOUSEMOVE:
+        mousePos.x = LOWORD(lParam);
+        mousePos.y = HIWORD(lParam);
+        //ScreenToClient(hWnd, &mousePos);
+        //OutputDebugStringA(("mPosX: " + std::to_string(mousePos.x) + " | mPosY: " + std::to_string(mousePos.y) + "\n").c_str());
+        //OutputDebugStringA(("LmPosX: " + std::to_string(LOWORD(lParam)) + " | HmPosY: " + std::to_string(HIWORD(lParam)) + "\n").c_str());
+        if (gameHandler.updateTile(mousePos))
+        {
+            //OutputDebugStringA("updated");
+            PostMessage(hWnd, WM_PAINT, wParam, lParam);
+        }
+
+        break;
+
+    case WM_LBUTTONDOWN:
+        switch (gameHandler.click())
+        {
+        case 0:
+            PostMessage(hWnd, WM_PAINT, wParam, lParam);
+            break;
+
+        case 1:
+
+            break;
+        }
+
+        break;
+
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

@@ -2,6 +2,7 @@
 #include "resource.h"
 #include <iostream>
 #include <String>
+#include "framework.h"
 
 #pragma comment(lib, "Msimg32.lib")
 
@@ -76,7 +77,7 @@ void Sprite::drawSprite(int x, int y, HDC paintDC)
 
 Sprite Sprite::getDefaultSprite(int col, int row)
 {
-    OutputDebugStringA(("col: " + std::to_string(col) + " | row: " + std::to_string(row) + "\n").c_str());
+    //OutputDebugStringA(("col: " + std::to_string(col) + " | row: " + std::to_string(row) + "\n").c_str());
     if (row > 1 && row < 6)
     {
         return Sprite();
@@ -145,3 +146,44 @@ bool Sprite::isEmpty()
 {
     return empty;
 }
+
+Sprite Sprite::getSprite(std::string type, bool black, bool bgblk)
+{
+    int col, row;
+    if (type == "rook")
+    {
+        col = 0;
+    }
+    else if (type == "knight")
+    {
+        col = 4;
+    }
+    else if (type == "bishop")
+    {
+        col = 1;
+    }
+    else if (type == "queen")
+    {
+        col = 2;
+    }
+    else if (type == "king")
+    {
+        col = 3;
+    }
+    else if (type == "pawn")
+    {
+        col = 5;
+    }
+
+    if (black)
+    {
+        row = 0;
+    }
+    else
+    {
+        row = 1;
+    }
+    return Sprite(col, row, bgblk);
+}
+
+
