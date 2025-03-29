@@ -17,6 +17,8 @@ public:
 
 	bool isEmpty();
 
+	static Sprite getSprite(std::string type, bool black, bool bgblk);
+
 
 private:
 	HBRUSH getSpriteBrush(int col, int row, bool bgBlk);

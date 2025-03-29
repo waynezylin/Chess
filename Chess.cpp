@@ -148,69 +148,118 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_PAINT:
         {
+
+        RECT window;
+        window.top = 0;
+        window.left = 0;
+        window.bottom = 800;
+        window.right = 800;
+        InvalidateRect(hWnd, &window, true);
+
         //OutputDebugStringA("paint\n");
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-            if (first)
-            {
-                Sprite sp;
+
+        
                 //HDC bb = CreateCompatibleDC(hdc);
                 //HBRUSH blk = (HBRUSH) SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-            
-                //// TODO: Add any drawing code that uses hdc here...
-                for (int i = 0; i < 8; i++)
-                {
-                    bool a = ((i % 2) == 0) ? true : false;
-                    for (int j = 0; j < 8; j++)
-                    {
-                        SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-                        if (a)
-                        {
-                            //OutputDebugStringA(("a " + std::to_string(i) + "\n").c_str());
-                            if ((j % 2) != 0)
-                            {
+        
 
-                                Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
-                            }
-                        }
-                        else
+
+                //// TODO: Add any drawing code that uses hdc here...
+        if (first || gameHandler.checkTC())
+        {
+            
+            
+            //ValidateRect(hWnd, &window);
+
+
+            for (int i = 0; i < 8; i++)
+            {
+                bool a = ((i % 2) == 0) ? true : false;
+                for (int j = 0; j < 8; j++)
+                {
+                    SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+                    if (a)
+                    {
+                        //OutputDebugStringA(("a " + std::to_string(i) + "\n").c_str());
+                        if ((j % 2) != 0)
                         {
-                            if ((j % 2) == 0)
-                            {
-                                //OutputDebugString(L"end");
-                                Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
-                            }
+
+                            Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
                         }
-                        sp = Sprite::getDefaultSprite(i, j);
-                        if (!sp.isEmpty())
+                    }
+                    else
+                    {
+                        if ((j % 2) == 0)
                         {
-                            sp.drawSprite(i, j, hdc);
+                            //OutputDebugString(L"end");
+                            Rectangle(hdc, (i * 100), (j * 100), (i * 100) + 100, (j * 100) + 100);
                         }
                     }
                 }
-                //BitBlt(hdc, 0, 0, 800, 800, bb, 0, 0, SRCCOPY);
-                //DeleteObject(blk);
-                //DeleteDC(bb);
-                //HDC spriteDC = CreateCompatibleDC(hdc);
-                //sp = Sprite(0, 0, false);
-                //sp.drawSprite(4, 0, hdc);
-                
-                first = false;
             }
-            else
+            first = false;
+
+
+
+            //if (gameHandler.checkPC())
             {
-                //OutputDebugStringA("paint\n");
+                Sprite sp;
+                Piece temp;
+                for (int b = 0; b < gameHandler.getBL(); b++)
+                {
+                    temp = gameHandler.getBlackPieces()[b];
+                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), temp.isBgBlk());
+                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
+                }
+                for (int w = 0; w < gameHandler.getWL(); w++)
+                {
+                    temp = gameHandler.getWhitePieces()[w];
+                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), temp.isBgBlk());
+                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
+                }
+                gameHandler.resetPC();
+
+            }
+
+            //if (gameHandler.checkTC())
+            {
+                //OutputDebugStringA("bleep\n");
+
+                /*RECT pr;
+                pr.left = gameHandler.getPrevTile().x * 100;
+                pr.top = gameHandler.getPrevTile().y * 100;
+                pr.right = pr.left + 100;
+                pr.bottom = pr.top + 100;
+                InvalidateRect(hWnd, &pr, true);
+                HBRUSH p1 = ((gameHandler.getPrevTile().x + gameHandler.getPrevTile().y) % 2 == 0) ? CreateSolidBrush(RGB(255, 255, 255)) : CreateSolidBrush(RGB(0, 0, 0));*/
+
+                //Rectangle(hdc, pr.left, pr.top, pr.right, pr.bottom);
+
                 HBRUSH p = CreateSolidBrush(RGB(255, 0, 0));
-                SelectObject(hdc, p);
+
                 RECT r;
                 r.left = gameHandler.getSelectedTile().x * 100;
                 r.top = gameHandler.getSelectedTile().y * 100;
                 r.right = r.left + 100;
                 r.bottom = r.top + 100;
-                InvalidateRect(hWnd, &r, false);
+                //InvalidateRect(hWnd, &r, false);
+
+                //SelectObject(hdc, p1);
+                //FillRect(hdc, &pr, p1);
+
+                SelectObject(hdc, p);
                 FrameRect(hdc, &r, p);
+
                 DeleteObject(p);
+                //DeleteObject(p1);
+                gameHandler.resetTile();
             }
+            
+
+        }
+
         EndPaint(hWnd, &ps);
         }
         break;
