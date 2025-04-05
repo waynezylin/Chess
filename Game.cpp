@@ -33,6 +33,10 @@ Game::Game()
 	}
 	tileChanged = false;
 	pieceChanged = true;
+	blkTurn = false;
+	bS = sizeof(black) / sizeof(black[0]);
+	wS = sizeof(white) / sizeof(white[0]);
+	selectedPos = -1;
 }
 
 void Game::update()
@@ -74,7 +78,44 @@ POINT Game::getSelectedTile()
 
 int Game::click()
 {
-	return 0;
+	int clickS;
+	Piece* clickP;
+	if (blkTurn) {
+		clickS = bS;
+		clickP = black;
+	}
+	else
+	{
+		clickS = wS;
+		clickP = white;
+	}
+
+	if (selectedPos == -1)
+	{
+		for (int i = 0; i < clickS; i++)
+		{
+			if (clickP[i].getX() == tile.x && clickP[i].getY() == tile.y)
+			{
+
+				selectedPos = i;
+				return 1; //if nothing selected then select the piece at the current tile
+
+
+			}
+		}
+	}
+	else
+	{
+		if (tile.x == clickP[selectedPos].getX() && tile.y == clickP[selectedPos].getY())
+		{
+			selectedPos = -1;
+			return 2; //if reselecting the piece that is already selected then reset the selected piece
+		}
+
+
+	}
+
+	return -1;
 }
 
 Piece* Game::getBlackPieces()
@@ -89,12 +130,12 @@ Piece* Game::getWhitePieces()
 
 int Game::getBL()
 {
-	return sizeof(black) / sizeof(black[0]);
+	return bS;
 }
 
 int Game::getWL()
 {
-	return sizeof(white) / sizeof(white[0]);
+	return wS;
 }
 
 void Game::resetTile()
@@ -121,3 +162,42 @@ POINT Game::getPrevTile()
 {
 	return prevTile;
 }
+
+void Game::setPotential()
+{
+	Piece p = (blkTurn) ? black[selectedPos] : white[selectedPos];
+	if (p.getType() == "pawn")
+	{
+		if (p.isBlack())
+		{
+			POINT a;
+			a.x = p.getX();
+			a.y = p.getY() + 1;
+			potential.push_back(a);
+			a.x = p.getX();
+			a.y = p.getY() + 2;
+			potential.push_back(a);
+		}
+	}
+	else if (p.getType() == "rook")
+	{
+
+	}
+	else if (p.getType() == "knight")
+	{
+
+	}
+	else if (p.getType() == "bishop")
+	{
+
+	}
+	else if (p.getType() == "queen")
+	{
+
+	}
+	else if (p.getType() == "king")
+	{
+
+	}
+}
+

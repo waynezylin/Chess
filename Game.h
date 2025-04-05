@@ -1,6 +1,7 @@
 #pragma once
 #include "framework.h"
 #include "Piece.h"
+#include <vector>
 
 using namespace std;
 
@@ -27,11 +28,16 @@ private:
 
 	Piece white[16];
 	Piece black[16];
+	int bS, wS;
 
-	POINT tile, prevTile;
+	POINT tile, prevTile, cTile;
 	bool tileChanged;
 	bool pieceChanged;
+	bool blkTurn;
+	int selectedPos;
+	vector<POINT> potential;
 
+	void setPotential();
 };
 
  
