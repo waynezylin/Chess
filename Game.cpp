@@ -166,38 +166,168 @@ POINT Game::getPrevTile()
 void Game::setPotential()
 {
 	Piece p = (blkTurn) ? black[selectedPos] : white[selectedPos];
+	POINT a;
 	if (p.getType() == "pawn")
 	{
 		if (p.isBlack())
 		{
-			POINT a;
 			a.x = p.getX();
 			a.y = p.getY() + 1;
 			potential.push_back(a);
-			a.x = p.getX();
 			a.y = p.getY() + 2;
+			potential.push_back(a);
+		}
+		else
+		{
+			a.x = p.getX();
+			a.y = p.getY() - 1;
+			potential.push_back(a);
+			a.y = p.getY() - 2;
 			potential.push_back(a);
 		}
 	}
 	else if (p.getType() == "rook")
 	{
-
+		a.y = p.getY();
+		for (int x = 0; x < 8; x++)
+		{
+			if (x != p.getX())
+			{
+				a.x = x;
+				potential.push_back(a);
+			}
+		}
+		a.x = p.getX();
+		for (int y = 0; y < 8; y++)
+		{
+			if (y != p.getY())
+			{
+				a.y = y;
+				potential.push_back(a);
+			}
+		}
 	}
 	else if (p.getType() == "knight")
 	{
+		a.x = p.getX() + 2;
+		a.y = p.getY() + 1;
+		potential.push_back(a);
+		a.y = p.getY() - 1;
+		potential.push_back(a);
 
+		a.x = p.getX() - 2;
+		a.y = p.getY() + 1;
+		potential.push_back(a);
+		a.y = p.getY() - 1;
+		potential.push_back(a);
+
+		a.y = p.getY() + 2;
+		a.x = p.getX() + 1;
+		potential.push_back(a);
+		a.x = p.getX() - 1;
+		potential.push_back(a);
+
+		a.y = p.getY() - 2;
+		a.x = p.getX() + 1;
+		potential.push_back(a);
+		a.x = p.getX() - 1;
+		potential.push_back(a);
 	}
 	else if (p.getType() == "bishop")
 	{
+		for (int i = 1; i < 8; i++)
+		{
+			a.x = p.getX() + i;
+			a.y = p.getY() + i;
+			potential.push_back(a);
 
+			a.x = p.getX() + i;
+			a.y = p.getY() - i;
+			potential.push_back(a);
+
+			a.x = p.getX() - i;
+			a.y = p.getY() + i;
+			potential.push_back(a);
+
+			a.x = p.getX() - i;
+			a.y = p.getY() - i;
+			potential.push_back(a);
+		}
 	}
 	else if (p.getType() == "queen")
 	{
+		for (int i = 1; i < 8; i++)
+		{
+			a.x = p.getX() + i;
+			a.y = p.getY() + i;
+			potential.push_back(a);
 
+			a.x = p.getX() + i;
+			a.y = p.getY() - i;
+			potential.push_back(a);
+
+			a.x = p.getX() - i;
+			a.y = p.getY() + i;
+			potential.push_back(a);
+
+			a.x = p.getX() - i;
+			a.y = p.getY() - i;
+			potential.push_back(a);
+		}
+
+		a.y = p.getY();
+		for (int x = 0; x < 8; x++)
+		{
+			if (x != p.getX())
+			{
+				a.x = x;
+				potential.push_back(a);
+			}
+		}
+		a.x = p.getX();
+		for (int y = 0; y < 8; y++)
+		{
+			if (y != p.getY())
+			{
+				a.y = y;
+				potential.push_back(a);
+			}
+		}
 	}
 	else if (p.getType() == "king")
 	{
+		a.x = p.getX() + 1;
+		a.y = p.getY() + 1;
+		potential.push_back(a);
 
+		a.x = p.getX() + 1;
+		a.y = p.getY() - 1;
+		potential.push_back(a);
+
+		a.x = p.getX() - 1;
+		a.y = p.getY() + 1;
+		potential.push_back(a);
+
+		a.x = p.getX() - 1;
+		a.y = p.getY() - 1;
+		potential.push_back(a);
+
+
+		a.x = p.getX() + 1;
+		a.y = p.getY();
+		potential.push_back(a);
+
+		a.x = p.getX() - 1;
+		a.y = p.getY();
+		potential.push_back(a);
+
+		a.x = p.getX();
+		a.y = p.getY() + 1;
+		potential.push_back(a);
+
+		a.x = p.getX();
+		a.y = p.getY() - 1;
+		potential.push_back(a);
 	}
 }
 
