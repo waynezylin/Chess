@@ -23,6 +23,8 @@ public:
 	bool checkPC();
 	void resetPC();
 	POINT getPrevTile();
+	vector<POINT> getPotential();
+	void resetPotential();
 
 private:
 
@@ -38,6 +40,8 @@ private:
 	vector<POINT> potential;
 
 	void setPotential();
+
+	bool isBlocked(int x1, int y1, int x2, int y2, bool isKnight);
 };
 
  

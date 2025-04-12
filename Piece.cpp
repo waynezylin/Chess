@@ -47,3 +47,9 @@ bool Piece::isBgBlk()
 	bool a = ((x + y) % 2 == 0) ? false : true;
 	return a;
 }
+
+void Piece::move(int x, int y)
+{
+	Piece::x = x;
+	Piece::y = y;
+}

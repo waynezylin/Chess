@@ -98,6 +98,7 @@ int Game::click()
 			{
 
 				selectedPos = i;
+				setPotential();
 				return 1; //if nothing selected then select the piece at the current tile
 
 
@@ -109,9 +110,31 @@ int Game::click()
 		if (tile.x == clickP[selectedPos].getX() && tile.y == clickP[selectedPos].getY())
 		{
 			selectedPos = -1;
+			resetPotential();
 			return 2; //if reselecting the piece that is already selected then reset the selected piece
 		}
 
+		int occupied = -1;
+		for (Piece p : white)
+		{
+			if (p.getX() == tile.x && p.getY() == tile.y)
+			{
+				occupied = 1;
+			}
+		}
+		for (Piece p : black)
+		{
+			if (p.getX() == tile.x && p.getY() == tile.y)
+			{
+				occupied = 2;
+			}
+		}
+		if (occupied < 0)
+		{
+			clickP[selectedPos].move(tile.x, tile.y);
+			resetPotential();
+			return 0;
+		}
 
 	}
 
@@ -161,6 +184,16 @@ void Game::resetPC()
 POINT Game::getPrevTile()
 {
 	return prevTile;
+}
+
+vector<POINT> Game::getPotential()
+{
+	return potential;
+}
+
+void Game::resetPotential()
+{
+	potential.clear();
 }
 
 void Game::setPotential()
@@ -329,5 +362,21 @@ void Game::setPotential()
 		a.y = p.getY() - 1;
 		potential.push_back(a);
 	}
+}
+
+bool Game::isBlocked(int x1, int y1, int x2, int y2, bool isKnight)
+{
+	if (!isKnight)
+	{
+		int dir = 0;
+		int xDiff = x1 - x2;
+		int yDiff = y1 - y2;
+		//if(xDiff > 0)
+	}
+	else
+	{
+
+	}
+	return false;
 }
 

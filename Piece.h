@@ -16,6 +16,7 @@ public:
 
 	void promote(string type);
 	bool isBgBlk();
+	void move(int x, int y);
 
 private:
 	bool isBlk;

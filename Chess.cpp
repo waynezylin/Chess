@@ -17,6 +17,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 bool first = true;
 Game gameHandler = Game();
 POINT mousePos;
+int clickOutput = -1;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -167,7 +168,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
                 //// TODO: Add any drawing code that uses hdc here...
-        if (first || gameHandler.checkTC())
+        if (first || gameHandler.checkTC() || clickOutput == 1)
         {
             
             
@@ -257,7 +258,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 gameHandler.resetTile();
             }
             
+            for (POINT pt : gameHandler.getPotential())
+            {
+                HBRUSH p = CreateSolidBrush(RGB(255, 0, 0));
 
+                RECT r;
+                r.left = pt.x * 100;
+                r.top = pt.y * 100;
+                r.right = r.left + 100;
+                r.bottom = r.top + 100;
+
+                SelectObject(hdc, p);
+                FillRect(hdc, &r, p);
+                DeleteObject(p);
+            }
         }
 
         EndPaint(hWnd, &ps);
@@ -289,8 +303,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
 
         case 1:
-
+            clickOutput = 1;
+            PostMessage(hWnd, WM_PAINT, wParam, lParam);
             break;
+        case 2:
+            PostMessage(hWnd, WM_PAINT, wParam, lParam);
+            clickOutput = -1;
+            break;
+
+        default: break;
         }
 
         break;

@@ -1,2 +1,4 @@
-﻿  LINK : C:\Users\Wayne\Documents\GitHub\Chess\x64\Debug\Chess.exe not found or not built by the last incremental link; performing full link
-  Chess.vcxproj -> C:\Users\Wayne\Documents\GitHub\Chess\x64\Debug\Chess.exe
+﻿  Game.cpp
+D:\Coding\Chess\Chess\Game.cpp(49,17): warning C4244: '=': conversion from 'double' to 'LONG', possible loss of data
+D:\Coding\Chess\Chess\Game.cpp(50,17): warning C4244: '=': conversion from 'double' to 'LONG', possible loss of data
+  Chess.vcxproj -> D:\Coding\Chess\Chess\x64\Debug\Chess.exe
