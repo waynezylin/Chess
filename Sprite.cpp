@@ -14,13 +14,13 @@ Sprite::Sprite()
     spriteBrush = HBRUSH();
 }
 
-Sprite::Sprite(int col, int row, bool bgBlk)
+Sprite::Sprite(int col, int row, int bg)
 {
     empty = false;
-    Sprite::spriteBrush = getSpriteBrush(col, row, bgBlk);
+    Sprite::spriteBrush = getSpriteBrush(col, row, bg);
 }
 
-HBRUSH Sprite::getSpriteBrush(int col, int row, bool bgBlk)
+HBRUSH Sprite::getSpriteBrush(int col, int row, int bg)
 {
     //HBITMAP spriteSheet = (HBITMAP)LoadImage(NULL, MAKEINTRESOURCE(IDB_SPRITESHEET), IMAGE_BITMAP, 0, 0, 0);
     HBITMAP spriteSheet = LoadBitmap((HINSTANCE)GetModuleHandle(_T("Chess.exe")), MAKEINTRESOURCE(IDB_SPRITESHEET));
@@ -40,11 +40,26 @@ HBRUSH Sprite::getSpriteBrush(int col, int row, bool bgBlk)
     oldMemBmp = (HBITMAP)SelectObject(memDC, spriteSheet);
     oldDstBmp = (HBITMAP)SelectObject(dstDC, dstBmp);
     
-    if(bgBlk == true)
+    if (bg == 1)//black
     {
         TransparentBlt(dstDC, 0, 0, 100, 100, memDC, xOfs, yOfs, 100, 100, RGB(255,255,255));
     }
-    else 
+    else if (bg == 2)
+    {
+        BitBlt(dstDC, 0, 0, 100, 100, memDC, xOfs, yOfs, SRCCOPY);
+        for (int i = 0; i < 100; i++)
+        {
+            for (int j = 0; j < 100; j++)
+            {
+                if (GetPixel(dstDC, i, j) == RGB(255, 255, 255))
+                {
+                    
+                    SetPixel(dstDC, i, j, RGB(0, 255, 0));
+                }
+            }
+        }
+    }
+    else//white
     {
         BitBlt(dstDC, 0, 0, 100, 100, memDC, xOfs, yOfs, SRCCOPY);
     }
@@ -147,7 +162,7 @@ bool Sprite::isEmpty()
     return empty;
 }
 
-Sprite Sprite::getSprite(std::string type, bool black, bool bgblk)
+Sprite Sprite::getSprite(std::string type, bool black, int bg)
 {
     int col, row;
     if (type == "rook")
@@ -183,7 +198,7 @@ Sprite Sprite::getSprite(std::string type, bool black, bool bgblk)
     {
         row = 1;
     }
-    return Sprite(col, row, bgblk);
+    return Sprite(col, row, bg);
 }
 
 

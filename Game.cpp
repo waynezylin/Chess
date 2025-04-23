@@ -26,16 +26,16 @@ Game::Game()
 			type = "king";
 			break;
 		}
-		black[i] = Piece(i, 0, true, type);
-		black[i + 8] = Piece(i, 1, true, "pawn");
-		white[i] = Piece(i, 7, false, type);
-		white[i + 8] = Piece(i, 6, false, "pawn");
+		black.push_back(Piece(i, 0, true, type));
+		black.push_back(Piece(i, 1, true, "pawn"));
+		white.push_back(Piece(i, 7, false, type));
+		white.push_back(Piece(i, 6, false, "pawn"));
 	}
 	tileChanged = false;
 	pieceChanged = true;
 	blkTurn = false;
-	bS = sizeof(black) / sizeof(black[0]);
-	wS = sizeof(white) / sizeof(white[0]);
+	/*bS = sizeof(black) / sizeof(black[0]);
+	wS = sizeof(white) / sizeof(white[0]);*/
 	selectedPos = -1;
 }
 
@@ -78,17 +78,8 @@ POINT Game::getSelectedTile()
 
 int Game::click()
 {
-	int clickS;
-	Piece* clickP;
-	if (blkTurn) {
-		clickS = bS;
-		clickP = black;
-	}
-	else
-	{
-		clickS = wS;
-		clickP = white;
-	}
+	int clickS = (blkTurn) ? black.size() : white.size();
+	vector<Piece>& clickP = (blkTurn) ? black : white;
 
 	if (selectedPos == -1)
 	{
@@ -100,8 +91,6 @@ int Game::click()
 				selectedPos = i;
 				setPotential();
 				return 1; //if nothing selected then select the piece at the current tile
-
-
 			}
 		}
 	}
@@ -115,50 +104,105 @@ int Game::click()
 		}
 
 		int occupied = -1;
+		bool naMove = true;
+		int atkPos = 0;
 		for (Piece p : white)
 		{
 			if (p.getX() == tile.x && p.getY() == tile.y)
 			{
 				occupied = 1;
+				break;
 			}
+			atkPos++;
 		}
-		for (Piece p : black)
+		if (occupied == -1)
 		{
-			if (p.getX() == tile.x && p.getY() == tile.y)
+			atkPos = 0;
+			for (Piece p : black)
 			{
-				occupied = 2;
+				if (p.getX() == tile.x && p.getY() == tile.y)
+				{
+					occupied = 2;
+					break;
+				}
+				atkPos++;
 			}
 		}
-		if (occupied < 0)
+		
+		for (POINT pot : potential)
 		{
-			clickP[selectedPos].move(tile.x, tile.y);
-			resetPotential();
-			return 0;
+			if (tile.x == pot.x && tile.y == pot.y)
+			{
+				naMove = false;
+				break;
+			}
 		}
+		if (!naMove)
+		{
+			switch (occupied)
+			{
+			case -1:
+				if (clickP[selectedPos].getType() == "pawn" && clickP[selectedPos].checkPawnFirst() == true)
+				{
+					clickP[selectedPos].pawnMoved();
+				}
+				clickP[selectedPos].move(tile.x, tile.y);
+				resetPotential();
+				selectedPos = -1;
+				return 3; //piece moved to an empty space. advance turn
 
+			case 1:
+				if (blkTurn)
+				{
+					white.erase(white.begin() + atkPos);
+				}
+				clickP[selectedPos].move(tile.x, tile.y);
+				resetPotential();
+				selectedPos = -1;
+				return 4; //piece consumed and taken over position. advance turn
+
+			case 2:
+				if (!blkTurn)
+				{
+					black.erase(black.begin() + atkPos);
+				}
+				clickP[selectedPos].move(tile.x, tile.y);
+				resetPotential();
+				selectedPos = -1;
+				return 4; //piece consumed and taken over position. advance turn
+
+			default:
+				break;
+			}
+			
+		}
+		
+		
 	}
 
 	return -1;
 }
 
-Piece* Game::getBlackPieces()
+vector<Piece> Game::getBlackPieces()
 {
 	return black;
 }
 
-Piece* Game::getWhitePieces()
+vector<Piece> Game::getWhitePieces()
 {
 	return white;
 }
 
 int Game::getBL()
 {
-	return bS;
+	//return bS;
+	return black.size();
 }
 
 int Game::getWL()
 {
-	return wS;
+	//return wS;
+	return white.size();
 }
 
 void Game::resetTile()
@@ -196,6 +240,11 @@ void Game::resetPotential()
 	potential.clear();
 }
 
+void Game::nextTurn()
+{
+	blkTurn = !blkTurn;
+}
+
 void Game::setPotential()
 {
 	Piece p = (blkTurn) ? black[selectedPos] : white[selectedPos];
@@ -206,17 +255,36 @@ void Game::setPotential()
 		{
 			a.x = p.getX();
 			a.y = p.getY() + 1;
-			potential.push_back(a);
-			a.y = p.getY() + 2;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
+			if (p.checkPawnFirst())
+			{
+				a.y = p.getY() + 2;
+				if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+				{
+					potential.push_back(a);
+				}
+				
+			}
 		}
 		else
 		{
 			a.x = p.getX();
 			a.y = p.getY() - 1;
-			potential.push_back(a);
-			a.y = p.getY() - 2;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
+			if (p.checkPawnFirst())
+			{
+				a.y = p.getY() - 2;
+				if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+				{
+					potential.push_back(a);
+				}
+			}
 		}
 	}
 	else if (p.getType() == "rook")
@@ -227,7 +295,10 @@ void Game::setPotential()
 			if (x != p.getX())
 			{
 				a.x = x;
-				potential.push_back(a);
+				if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+				{
+					potential.push_back(a);
+				}
 			}
 		}
 		a.x = p.getX();
@@ -236,7 +307,10 @@ void Game::setPotential()
 			if (y != p.getY())
 			{
 				a.y = y;
-				potential.push_back(a);
+				if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+				{
+					potential.push_back(a);
+				}
 			}
 		}
 	}
@@ -244,27 +318,51 @@ void Game::setPotential()
 	{
 		a.x = p.getX() + 2;
 		a.y = p.getY() + 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 		a.y = p.getY() - 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.x = p.getX() - 2;
 		a.y = p.getY() + 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 		a.y = p.getY() - 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.y = p.getY() + 2;
 		a.x = p.getX() + 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 		a.x = p.getX() - 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.y = p.getY() - 2;
 		a.x = p.getX() + 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 		a.x = p.getX() - 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 	}
 	else if (p.getType() == "bishop")
 	{
@@ -272,19 +370,31 @@ void Game::setPotential()
 		{
 			a.x = p.getX() + i;
 			a.y = p.getY() + i;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
 
 			a.x = p.getX() + i;
 			a.y = p.getY() - i;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
 
 			a.x = p.getX() - i;
 			a.y = p.getY() + i;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
 
 			a.x = p.getX() - i;
 			a.y = p.getY() - i;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
 		}
 	}
 	else if (p.getType() == "queen")
@@ -293,19 +403,31 @@ void Game::setPotential()
 		{
 			a.x = p.getX() + i;
 			a.y = p.getY() + i;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
 
 			a.x = p.getX() + i;
 			a.y = p.getY() - i;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
 
 			a.x = p.getX() - i;
 			a.y = p.getY() + i;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
 
 			a.x = p.getX() - i;
 			a.y = p.getY() - i;
-			potential.push_back(a);
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			{
+				potential.push_back(a);
+			}
 		}
 
 		a.y = p.getY();
@@ -314,7 +436,10 @@ void Game::setPotential()
 			if (x != p.getX())
 			{
 				a.x = x;
-				potential.push_back(a);
+				if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+				{
+					potential.push_back(a);
+				}
 			}
 		}
 		a.x = p.getX();
@@ -323,7 +448,10 @@ void Game::setPotential()
 			if (y != p.getY())
 			{
 				a.y = y;
-				potential.push_back(a);
+				if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+				{
+					potential.push_back(a);
+				}
 			}
 		}
 	}
@@ -331,52 +459,221 @@ void Game::setPotential()
 	{
 		a.x = p.getX() + 1;
 		a.y = p.getY() + 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.x = p.getX() + 1;
 		a.y = p.getY() - 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.x = p.getX() - 1;
 		a.y = p.getY() + 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.x = p.getX() - 1;
 		a.y = p.getY() - 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 
 		a.x = p.getX() + 1;
 		a.y = p.getY();
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.x = p.getX() - 1;
 		a.y = p.getY();
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.x = p.getX();
 		a.y = p.getY() + 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 
 		a.x = p.getX();
 		a.y = p.getY() - 1;
-		potential.push_back(a);
+		if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+		{
+			potential.push_back(a);
+		}
 	}
 }
 
-bool Game::isBlocked(int x1, int y1, int x2, int y2, bool isKnight)
-{
-	if (!isKnight)
-	{
+bool Game::isBlocked(int x1, int y1, int x2, int y2)
+{	//1 = current position | 2 = potential position
+		int xDiff = x2 - x1; //positive right | negative left
+		int yDiff = y2 - y1; //positive down | negative up
 		int dir = 0;
-		int xDiff = x1 - x2;
-		int yDiff = y1 - y2;
-		//if(xDiff > 0)
-	}
-	else
-	{
-
-	}
+		if (xDiff == 0 && yDiff > 0) //down
+		{
+			dir = 1;
+		}
+		else if (xDiff == 0 && yDiff < 0) //up
+		{
+			dir = 2;
+		}
+		else if (xDiff > 0 && yDiff == 0) //right
+		{
+			dir = 3;
+		}
+		else if (xDiff < 0 && yDiff == 0) //left
+		{
+			dir = 4;
+		}
+		else if (xDiff > 0 && yDiff > 0) //right down
+		{
+			dir = 5;
+		}
+		else if (xDiff > 0 && yDiff < 0) //right up
+		{
+			dir = 6;
+		}
+		else if (xDiff < 0 && yDiff > 0) //left down
+		{
+			dir = 7;
+		}
+		else if (xDiff < 0 && yDiff < 0) //left up
+		{
+			dir = 8;
+		}
+		
+		for (Piece pp : black)
+		{
+			if (pp.getX() == x2 && pp.getY() == y2 && blkTurn)
+			{
+				return true;
+			}
+			int absx = pp.getX() - x1;
+			int absy = pp.getY() - y1;
+			switch (dir)
+			{
+			case 1:
+				if (pp.getX() == x1 && pp.getY() > y1 && pp.getY() < y2)
+				{
+					return true;
+				}
+				break;
+			case 2:
+				if (pp.getX() == x1 && pp.getY() < y1 && pp.getY() > y2)
+				{
+					return true;
+				}
+				break;
+			case 3:
+				if (pp.getY() == y1 && pp.getX() > x1 && pp.getX() < x2)
+				{
+					return true;
+				}
+				break;
+			case 4:
+				if (pp.getY() == y1 && pp.getX() < x1 && pp.getX() > x2)
+				{
+					return true;
+				}
+				break;
+			case 5:
+				if (pp.getX() > x1 && pp.getY() > y1 && pp.getX() < x2 && pp.getY() < y2 && abs(absx) == abs(absy))
+				{
+					return true;
+				}
+				break;
+			case 6:
+				if (pp.getX() > x1 && pp.getY() < y1 && pp.getX() < x2 && pp.getY() > y2 && abs(absx) == abs(absy))
+				{
+					return true;
+				}
+				break;
+			case 7:
+				if (pp.getX() < x1 && pp.getY() > y1 && pp.getX() > x2 && pp.getY() < y2 && abs(absx) == abs(absy))
+				{
+					return true;
+				}
+				break;
+			case 8:
+				if (pp.getX() < x1 && pp.getY() < y1 && pp.getX() > x2 && pp.getY() > y2 && abs(absx) == abs(absy))
+				{
+					return true;
+				}
+				break;
+			}
+		}
+		for (Piece pp : white)
+		{
+			if (pp.getX() == x2 && pp.getY() == y2 && !blkTurn)
+			{
+				return true;
+			}
+			int absx = pp.getX() - x1;
+			int absy = pp.getY() - y1;
+			switch (dir)
+			{
+			case 1:
+				if (pp.getX() == x1 && pp.getY() > y1 && pp.getY() < y2)
+				{
+					return true;
+				}
+				break;
+			case 2:
+				if (pp.getX() == x1 && pp.getY() < y1 && pp.getY() > y2)
+				{
+					return true;
+				}
+				break;
+			case 3:
+				if (pp.getY() == y1 && pp.getX() > x1 && pp.getX() < x2)
+				{
+					return true;
+				}
+				break;
+			case 4:
+				if (pp.getY() == y1 && pp.getX() < x1 && pp.getX() > x2)
+				{
+					return true;
+				}
+				break;
+			case 5:
+				if (pp.getX() > x1 && pp.getY() > y1 && pp.getX() < x2 && pp.getY() < y2 && abs(absx) == abs(absy))
+				{
+					return true;
+				}
+				break;
+			case 6:
+				if (pp.getX() > x1 && pp.getY() < y1 && pp.getX() < x2 && pp.getY() > y2 && abs(absx) == abs(absy))
+				{
+					return true;
+				}
+				break;
+			case 7:
+				if (pp.getX() < x1 && pp.getY() > y1 && pp.getX() > x2 && pp.getY() < y2 && abs(absx) == abs(absy))
+				{
+					return true;
+				}
+				break;
+			case 8:
+				if (pp.getX() < x1 && pp.getY() < y1 && pp.getX() > x2 && pp.getY() > y2 && abs(absx) == abs(absy))
+				{
+					return true;
+				}
+				break;
+			}
+		}
 	return false;
 }
 

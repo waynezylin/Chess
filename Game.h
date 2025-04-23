@@ -14,8 +14,8 @@ public:
 	bool updateTile(POINT mouse);
 	POINT getSelectedTile();
 	int click();
-	Piece* getBlackPieces();
-	Piece* getWhitePieces();
+	vector<Piece> getBlackPieces();
+	vector<Piece> getWhitePieces();
 	int getBL();
 	int getWL();
 	void resetTile();
@@ -25,12 +25,13 @@ public:
 	POINT getPrevTile();
 	vector<POINT> getPotential();
 	void resetPotential();
+	void nextTurn();
 
 private:
 
-	Piece white[16];
-	Piece black[16];
-	int bS, wS;
+	vector<Piece> white;
+	vector<Piece> black;
+	//int bS, wS;
 
 	POINT tile, prevTile, cTile;
 	bool tileChanged;
@@ -41,7 +42,7 @@ private:
 
 	void setPotential();
 
-	bool isBlocked(int x1, int y1, int x2, int y2, bool isKnight);
+	bool isBlocked(int x1, int y1, int x2, int y2);
 };
 
  

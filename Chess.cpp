@@ -170,7 +170,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 //// TODO: Add any drawing code that uses hdc here...
         if (first || gameHandler.checkTC() || clickOutput == 1)
         {
-            
+            clickOutput = -1;
             
             //ValidateRect(hWnd, &window);
 
@@ -201,28 +201,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
             first = false;
-
-
-
-            //if (gameHandler.checkPC())
-            {
-                Sprite sp;
-                Piece temp;
-                for (int b = 0; b < gameHandler.getBL(); b++)
-                {
-                    temp = gameHandler.getBlackPieces()[b];
-                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), temp.isBgBlk());
-                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
-                }
-                for (int w = 0; w < gameHandler.getWL(); w++)
-                {
-                    temp = gameHandler.getWhitePieces()[w];
-                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), temp.isBgBlk());
-                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
-                }
-                gameHandler.resetPC();
-
-            }
+            
 
             //if (gameHandler.checkTC())
             {
@@ -272,6 +251,44 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 FillRect(hdc, &r, p);
                 DeleteObject(p);
             }
+
+            //if (gameHandler.checkPC())
+            {
+                Sprite sp;
+                Piece temp;
+                int bgc = 0;
+                for (int b = 0; b < gameHandler.getBL(); b++)
+                {
+                    temp = gameHandler.getBlackPieces()[b];
+                    bgc = (temp.isBgBlk()) ? 1 : 0;
+                    for (POINT pot : gameHandler.getPotential())
+                    {
+                        if (pot.x == temp.getX() && pot.y == temp.getY())
+                        {
+                            bgc = 2;
+                        }
+                    }
+                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), bgc);
+                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
+                }
+                for (int w = 0; w < gameHandler.getWL(); w++)
+                {
+                    temp = gameHandler.getWhitePieces()[w];
+                    bgc = (temp.isBgBlk()) ? 1 : 0;
+                    for (POINT pot : gameHandler.getPotential())
+                    {
+                        if (pot.x == temp.getX() && pot.y == temp.getY())
+                        {
+                            bgc = 2;
+                        }
+                    }
+                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), bgc);
+                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
+                }
+                gameHandler.resetPC();
+
+            }
+
         }
 
         EndPaint(hWnd, &ps);
@@ -309,6 +326,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case 2:
             PostMessage(hWnd, WM_PAINT, wParam, lParam);
             clickOutput = -1;
+            break;
+
+        case 3:
+            clickOutput = 1;
+            PostMessage(hWnd, WM_PAINT, wParam, lParam);
+            gameHandler.nextTurn();
+            break;
+
+        case 4:
+            clickOutput = 1;
+            PostMessage(hWnd, WM_PAINT, wParam, lParam);
+            gameHandler.nextTurn();
             break;
 
         default: break;

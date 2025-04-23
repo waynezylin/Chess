@@ -7,7 +7,7 @@ class Sprite
 public:
 	Sprite();
 
-	Sprite(int col, int row, bool bgBlk);
+	Sprite(int col, int row, int bg);
 
 	HBRUSH spriteBrush;
 
@@ -17,11 +17,11 @@ public:
 
 	bool isEmpty();
 
-	static Sprite getSprite(std::string type, bool black, bool bgblk);
+	static Sprite getSprite(std::string type, bool black, int bg);
 
 
 private:
-	HBRUSH getSpriteBrush(int col, int row, bool bgBlk);
+	HBRUSH getSpriteBrush(int col, int row, int bg);
 
 	bool empty;
 
