@@ -80,6 +80,7 @@ int Game::click()
 {
 	int clickS = (blkTurn) ? black.size() : white.size();
 	vector<Piece>& clickP = (blkTurn) ? black : white;
+	int retVal = -1;
 
 	if (selectedPos == -1)
 	{
@@ -139,6 +140,9 @@ int Game::click()
 		}
 		if (!naMove)
 		{
+			Piece temp;
+			int tempX = clickP[selectedPos].getX();
+			int tempY = clickP[selectedPos].getY();
 			switch (occupied)
 			{
 			case -1:
@@ -147,40 +151,54 @@ int Game::click()
 					clickP[selectedPos].pawnMoved();
 				}
 				clickP[selectedPos].move(tile.x, tile.y);
-				resetPotential();
-				selectedPos = -1;
-				return 3; //piece moved to an empty space. advance turn
+				retVal = 3; //piece moved to an empty space. advance turn
+				break;
 
 			case 1:
+			case 2:
 				if (blkTurn)
 				{
+					temp = white.at(atkPos);
 					white.erase(white.begin() + atkPos);
 				}
-				clickP[selectedPos].move(tile.x, tile.y);
-				resetPotential();
-				selectedPos = -1;
-				return 4; //piece consumed and taken over position. advance turn
-
-			case 2:
-				if (!blkTurn)
+				else
 				{
+					temp = black.at(atkPos);
 					black.erase(black.begin() + atkPos);
 				}
 				clickP[selectedPos].move(tile.x, tile.y);
-				resetPotential();
 				selectedPos = -1;
-				return 4; //piece consumed and taken over position. advance turn
+				retVal = 4; //piece consumed and taken over position. advance turn
+				break;
 
 			default:
 				break;
 			}
-			
+
+			if (checkKing() == -1)
+			{
+				clickP[selectedPos].move(tempX, tempY);
+				if (retVal == 4)
+				{
+					if (blkTurn)
+					{
+						white.push_back(temp);
+					}
+					else
+					{
+						black.push_back(temp);
+					}
+					resetPotential();
+					selectedPos = -1;
+					return 2;
+				}
+			}
+			resetPotential();
+			selectedPos = -1;
 		}
-		
-		
 	}
 
-	return -1;
+	return retVal;
 }
 
 vector<Piece> Game::getBlackPieces()
@@ -245,9 +263,179 @@ void Game::nextTurn()
 	blkTurn = !blkTurn;
 }
 
-void Game::setPotential()
+int Game::checkKing()
 {
-	Piece p = (blkTurn) ? black[selectedPos] : white[selectedPos];
+	//OutputDebugStringA("\n start check king \n");
+	resetPotential();
+	vector<Piece>& self = (blkTurn) ? black : white;
+	vector<Piece>& enemy = (!blkTurn) ? black : white;
+	Piece myKing;
+	Piece enKing;
+	bool checkSelf = false;
+	bool checkEnemy = false;
+
+	for (Piece p : self)
+	{
+		if (p.getType() == "king")
+		{
+			myKing = p;
+		}
+	}
+	for (Piece p : enemy)
+	{
+		if (p.getType() == "king")
+		{
+			enKing = p;
+			//OutputDebugStringA(("enemy king x: " + std::to_string(enKing->getX()) + " y: " + std::to_string(enKing->getY()) + " \n").c_str());
+		}
+	}
+
+	for (Piece p : self)
+	{
+		//OutputDebugStringA(("self " + p.getType() + " x: " + std::to_string(p.getX()) + " y: " + std::to_string(p.getY()) + " \n").c_str());
+		setPotentialI(p);
+		for (POINT po : potential)
+		{
+			//OutputDebugStringA(("potential x: " + std::to_string(po.x) + " y: " + std::to_string(po.y) + " \n").c_str());
+			if (po.x == enKing.getX() && po.y == enKing.getY())
+			{
+				checkEnemy = true;
+				break;
+			}
+		}
+		resetPotential();
+		if (checkEnemy)
+		{
+			break;
+		}
+	}
+	blkTurn = !blkTurn;
+	for (Piece p : enemy)
+	{
+		setPotentialI(p);
+		for (POINT po : potential)
+		{
+			if (po.x == myKing.getX() && po.y == myKing.getY())
+			{
+				checkSelf = true;
+				break;
+			}
+		}
+		resetPotential();
+		if (checkSelf)
+		{
+			break;
+		}
+	}
+
+	bool canBlock = true;
+	bool cannotMove = true;
+	for (Piece p : enemy)
+	{
+		int tempX = p.getX();
+		int tempY = p.getY();
+		resetPotential();
+		setPotentialI(p);
+		vector<POINT> tempPotential = potential;
+		for (POINT po : tempPotential)
+		{
+			cannotMove = false;
+			bool blocked = true;
+			p.move(po.x, po.y);
+			for (Piece pe : self)
+			{
+				setPotentialI(pe);
+				for (POINT poe : potential)
+				{
+					if (poe.x == enKing.getX() && poe.y == enKing.getY())
+					{
+						blocked = false;
+						break;
+					}
+				}
+				resetPotential();
+				if (!blocked)
+				{
+					break;
+				}
+			}
+
+			if (blocked) //enemy can block the check so not checkmate
+			{
+				canBlock = false;
+				p.move(tempX, tempY);
+				resetPotential();
+				goto fin;
+			}
+		}
+		p.move(tempX, tempY);
+	}
+
+fin:
+	blkTurn = !blkTurn;
+	//OutputDebugStringA("wrapping up check king \n");
+	if (checkSelf) //this move will put you into check so is invalid
+	{
+		OutputDebugStringA("self check \n");
+		return -1;
+	}
+	else //you are not in check so reset previous check status
+	{
+		OutputDebugStringA("not self check \n");
+		if (blkTurn)
+		{
+			bCheck = false;
+		}
+		else
+		{
+			wCheck = false;
+		}
+	}
+
+	if (checkEnemy) //this move will put your enemy into check
+	{
+		OutputDebugStringA("enemy check \n");
+		if (blkTurn)
+		{
+			wCheck = true;
+		}
+		else
+		{
+			bCheck = true;
+		}
+
+		if (!canBlock) //if there is nothing your enemy can do about being in check
+		{
+			OutputDebugStringA("enemy cannot block \n");
+			return 1; //checkmate //TODO run end game code instead of returning
+		}
+	}
+	else
+	{
+		OutputDebugStringA("not enemy check \n");
+		if (cannotMove) //if enemy cannot move and is not in check
+		{
+			return 2; //stalemate //TODO run end game code instead of returning
+		}
+	}
+	OutputDebugStringA("normal move \n");
+	return 0; //valid move
+}
+
+bool Game::getCurCheck()
+{
+	if (blkTurn)
+	{
+		return bCheck;
+	}
+	else 
+	{
+		return wCheck;
+	}
+}
+
+void Game::setPotentialI(Piece p)
+{
 	POINT a;
 	if (p.getType() == "pawn")
 	{
@@ -516,164 +704,175 @@ void Game::setPotential()
 	}
 }
 
+void Game::setPotential()
+{
+	Piece p = (blkTurn) ? black[selectedPos] : white[selectedPos];
+	setPotentialI(p);
+}
+
 bool Game::isBlocked(int x1, int y1, int x2, int y2)
 {	//1 = current position | 2 = potential position
-		int xDiff = x2 - x1; //positive right | negative left
-		int yDiff = y2 - y1; //positive down | negative up
-		int dir = 0;
-		if (xDiff == 0 && yDiff > 0) //down
+	if (x2 > 8 || y2 > 8)
+	{
+		return true;
+	}
+
+	int xDiff = x2 - x1; //positive right | negative left
+	int yDiff = y2 - y1; //positive down | negative up
+	int dir = 0;
+	if (xDiff == 0 && yDiff > 0) //down
+	{
+		dir = 1;
+	}
+	else if (xDiff == 0 && yDiff < 0) //up
+	{
+		dir = 2;
+	}
+	else if (xDiff > 0 && yDiff == 0) //right
+	{
+		dir = 3;
+	}
+	else if (xDiff < 0 && yDiff == 0) //left
+	{
+		dir = 4;
+	}
+	else if (xDiff > 0 && yDiff > 0) //right down
+	{
+		dir = 5;
+	}
+	else if (xDiff > 0 && yDiff < 0) //right up
+	{
+		dir = 6;
+	}
+	else if (xDiff < 0 && yDiff > 0) //left down
+	{
+		dir = 7;
+	}
+	else if (xDiff < 0 && yDiff < 0) //left up
+	{
+		dir = 8;
+	}
+
+	for (Piece pp : black)
+	{
+		if (pp.getX() == x2 && pp.getY() == y2 && blkTurn)
 		{
-			dir = 1;
+			return true;
 		}
-		else if (xDiff == 0 && yDiff < 0) //up
+		int absx = pp.getX() - x1;
+		int absy = pp.getY() - y1;
+		switch (dir)
 		{
-			dir = 2;
-		}
-		else if (xDiff > 0 && yDiff == 0) //right
-		{
-			dir = 3;
-		}
-		else if (xDiff < 0 && yDiff == 0) //left
-		{
-			dir = 4;
-		}
-		else if (xDiff > 0 && yDiff > 0) //right down
-		{
-			dir = 5;
-		}
-		else if (xDiff > 0 && yDiff < 0) //right up
-		{
-			dir = 6;
-		}
-		else if (xDiff < 0 && yDiff > 0) //left down
-		{
-			dir = 7;
-		}
-		else if (xDiff < 0 && yDiff < 0) //left up
-		{
-			dir = 8;
-		}
-		
-		for (Piece pp : black)
-		{
-			if (pp.getX() == x2 && pp.getY() == y2 && blkTurn)
+		case 1:
+			if (pp.getX() == x1 && pp.getY() > y1 && pp.getY() < y2)
 			{
 				return true;
 			}
-			int absx = pp.getX() - x1;
-			int absy = pp.getY() - y1;
-			switch (dir)
-			{
-			case 1:
-				if (pp.getX() == x1 && pp.getY() > y1 && pp.getY() < y2)
-				{
-					return true;
-				}
-				break;
-			case 2:
-				if (pp.getX() == x1 && pp.getY() < y1 && pp.getY() > y2)
-				{
-					return true;
-				}
-				break;
-			case 3:
-				if (pp.getY() == y1 && pp.getX() > x1 && pp.getX() < x2)
-				{
-					return true;
-				}
-				break;
-			case 4:
-				if (pp.getY() == y1 && pp.getX() < x1 && pp.getX() > x2)
-				{
-					return true;
-				}
-				break;
-			case 5:
-				if (pp.getX() > x1 && pp.getY() > y1 && pp.getX() < x2 && pp.getY() < y2 && abs(absx) == abs(absy))
-				{
-					return true;
-				}
-				break;
-			case 6:
-				if (pp.getX() > x1 && pp.getY() < y1 && pp.getX() < x2 && pp.getY() > y2 && abs(absx) == abs(absy))
-				{
-					return true;
-				}
-				break;
-			case 7:
-				if (pp.getX() < x1 && pp.getY() > y1 && pp.getX() > x2 && pp.getY() < y2 && abs(absx) == abs(absy))
-				{
-					return true;
-				}
-				break;
-			case 8:
-				if (pp.getX() < x1 && pp.getY() < y1 && pp.getX() > x2 && pp.getY() > y2 && abs(absx) == abs(absy))
-				{
-					return true;
-				}
-				break;
-			}
-		}
-		for (Piece pp : white)
-		{
-			if (pp.getX() == x2 && pp.getY() == y2 && !blkTurn)
+			break;
+		case 2:
+			if (pp.getX() == x1 && pp.getY() < y1 && pp.getY() > y2)
 			{
 				return true;
 			}
-			int absx = pp.getX() - x1;
-			int absy = pp.getY() - y1;
-			switch (dir)
+			break;
+		case 3:
+			if (pp.getY() == y1 && pp.getX() > x1 && pp.getX() < x2)
 			{
-			case 1:
-				if (pp.getX() == x1 && pp.getY() > y1 && pp.getY() < y2)
-				{
-					return true;
-				}
-				break;
-			case 2:
-				if (pp.getX() == x1 && pp.getY() < y1 && pp.getY() > y2)
-				{
-					return true;
-				}
-				break;
-			case 3:
-				if (pp.getY() == y1 && pp.getX() > x1 && pp.getX() < x2)
-				{
-					return true;
-				}
-				break;
-			case 4:
-				if (pp.getY() == y1 && pp.getX() < x1 && pp.getX() > x2)
-				{
-					return true;
-				}
-				break;
-			case 5:
-				if (pp.getX() > x1 && pp.getY() > y1 && pp.getX() < x2 && pp.getY() < y2 && abs(absx) == abs(absy))
-				{
-					return true;
-				}
-				break;
-			case 6:
-				if (pp.getX() > x1 && pp.getY() < y1 && pp.getX() < x2 && pp.getY() > y2 && abs(absx) == abs(absy))
-				{
-					return true;
-				}
-				break;
-			case 7:
-				if (pp.getX() < x1 && pp.getY() > y1 && pp.getX() > x2 && pp.getY() < y2 && abs(absx) == abs(absy))
-				{
-					return true;
-				}
-				break;
-			case 8:
-				if (pp.getX() < x1 && pp.getY() < y1 && pp.getX() > x2 && pp.getY() > y2 && abs(absx) == abs(absy))
-				{
-					return true;
-				}
-				break;
+				return true;
 			}
+			break;
+		case 4:
+			if (pp.getY() == y1 && pp.getX() < x1 && pp.getX() > x2)
+			{
+				return true;
+			}
+			break;
+		case 5:
+			if (pp.getX() > x1 && pp.getY() > y1 && pp.getX() < x2 && pp.getY() < y2 && abs(absx) == abs(absy))
+			{
+				return true;
+			}
+			break;
+		case 6:
+			if (pp.getX() > x1 && pp.getY() < y1 && pp.getX() < x2 && pp.getY() > y2 && abs(absx) == abs(absy))
+			{
+				return true;
+			}
+			break;
+		case 7:
+			if (pp.getX() < x1 && pp.getY() > y1 && pp.getX() > x2 && pp.getY() < y2 && abs(absx) == abs(absy))
+			{
+				return true;
+			}
+			break;
+		case 8:
+			if (pp.getX() < x1 && pp.getY() < y1 && pp.getX() > x2 && pp.getY() > y2 && abs(absx) == abs(absy))
+			{
+				return true;
+			}
+			break;
 		}
+	}
+	for (Piece pp : white)
+	{
+		if (pp.getX() == x2 && pp.getY() == y2 && !blkTurn)
+		{
+			return true;
+		}
+		int absx = pp.getX() - x1;
+		int absy = pp.getY() - y1;
+		switch (dir)
+		{
+		case 1:
+			if (pp.getX() == x1 && pp.getY() > y1 && pp.getY() < y2)
+			{
+				return true;
+			}
+			break;
+		case 2:
+			if (pp.getX() == x1 && pp.getY() < y1 && pp.getY() > y2)
+			{
+				return true;
+			}
+			break;
+		case 3:
+			if (pp.getY() == y1 && pp.getX() > x1 && pp.getX() < x2)
+			{
+				return true;
+			}
+			break;
+		case 4:
+			if (pp.getY() == y1 && pp.getX() < x1 && pp.getX() > x2)
+			{
+				return true;
+			}
+			break;
+		case 5:
+			if (pp.getX() > x1 && pp.getY() > y1 && pp.getX() < x2 && pp.getY() < y2 && abs(absx) == abs(absy))
+			{
+				return true;
+			}
+			break;
+		case 6:
+			if (pp.getX() > x1 && pp.getY() < y1 && pp.getX() < x2 && pp.getY() > y2 && abs(absx) == abs(absy))
+			{
+				return true;
+			}
+			break;
+		case 7:
+			if (pp.getX() < x1 && pp.getY() > y1 && pp.getX() > x2 && pp.getY() < y2 && abs(absx) == abs(absy))
+			{
+				return true;
+			}
+			break;
+		case 8:
+			if (pp.getX() < x1 && pp.getY() < y1 && pp.getX() > x2 && pp.getY() > y2 && abs(absx) == abs(absy))
+			{
+				return true;
+			}
+			break;
+		}
+	}
 	return false;
 }
 

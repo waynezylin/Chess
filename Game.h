@@ -26,6 +26,8 @@ public:
 	vector<POINT> getPotential();
 	void resetPotential();
 	void nextTurn();
+	int checkKing();
+	bool getCurCheck();
 
 private:
 
@@ -39,10 +41,14 @@ private:
 	bool blkTurn;
 	int selectedPos;
 	vector<POINT> potential;
+	bool wCheck, bCheck;
+
+	void setPotentialI(Piece p);
 
 	void setPotential();
 
 	bool isBlocked(int x1, int y1, int x2, int y2);
+
 };
 
  

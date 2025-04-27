@@ -7,6 +7,7 @@
 #include <String>
 #include "Sprite.h"
 #include "Game.h"
+#include "winuser.h"
 
 #define MAX_LOADSTRING 100
 
@@ -24,6 +25,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Check(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -139,6 +141,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;
+
+            case IDD_CHECK:
+                DialogBox(hInst, MAKEINTRESOURCE(IDD_CHECK), hWnd, Check);
+                break;
+
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
@@ -331,13 +338,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case 3:
             clickOutput = 1;
             PostMessage(hWnd, WM_PAINT, wParam, lParam);
-            gameHandler.nextTurn();
+            if (gameHandler.getCurCheck())
+            {
+                SetWindowText((HWND)check_text, L"");
+                PostMessage(hWnd, WM_COMMAND, IDD_CHECK, lParam);
+            }
+            else
+            {
+                gameHandler.nextTurn();
+            }
             break;
 
         case 4:
             clickOutput = 1;
             PostMessage(hWnd, WM_PAINT, wParam, lParam);
-            gameHandler.nextTurn();
+            if (gameHandler.getCurCheck())
+            {
+                SetWindowText((HWND)check_text, L"");
+                PostMessage(hWnd, WM_COMMAND, IDD_CHECK, lParam);
+            }
+            else
+            {
+                gameHandler.nextTurn();
+            }
             break;
 
         default: break;
@@ -371,3 +394,22 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
+INT_PTR CALLBACK Check(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}

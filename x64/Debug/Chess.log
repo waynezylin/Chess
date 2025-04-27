@@ -1,2 +1,4 @@
 ﻿  Chess.cpp
+D:\Coding\Chess\Chess\resource.h(19,1): warning C4005: 'TEXT': macro redefinition
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\um\winnt.h(620,1): message : see previous definition of 'TEXT'
   Chess.vcxproj -> D:\Coding\Chess\Chess\x64\Debug\Chess.exe
