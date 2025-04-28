@@ -13,6 +13,7 @@ Piece::Piece(int x, int y, bool isBlack, string type)
 	Piece::isBlk = isBlack;
 	Piece::type = type;
 	Piece::pawnFirst = true;
+	Piece::enpassant = false;
 }
 
 int Piece::getX()

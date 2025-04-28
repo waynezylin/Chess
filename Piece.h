@@ -19,6 +19,7 @@ public:
 	void move(int x, int y);
 	bool checkPawnFirst();
 	void pawnMoved();
+	bool enpassant;
 
 private:
 	bool isBlk;

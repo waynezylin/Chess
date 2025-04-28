@@ -167,7 +167,6 @@ int Game::click()
 					black.erase(black.begin() + atkPos);
 				}
 				clickP[selectedPos].move(tile.x, tile.y);
-				selectedPos = -1;
 				retVal = 4; //piece consumed and taken over position. advance turn
 				break;
 
@@ -175,7 +174,8 @@ int Game::click()
 				break;
 			}
 
-			if (checkKing() == -1)
+			int ck = checkKing();
+			if (ck == -1) //invalid move, undo changes
 			{
 				clickP[selectedPos].move(tempX, tempY);
 				if (retVal == 4)
@@ -188,10 +188,16 @@ int Game::click()
 					{
 						black.push_back(temp);
 					}
-					resetPotential();
-					selectedPos = -1;
-					return 2;
+					retVal =  2;
 				}
+			}
+			else if (ck == 1) //checkmate
+			{
+				retVal = 5;
+			}
+			else if (ck == 2) //stalemate
+			{
+				retVal = 6;
 			}
 			resetPotential();
 			selectedPos = -1;
@@ -376,12 +382,12 @@ fin:
 	//OutputDebugStringA("wrapping up check king \n");
 	if (checkSelf) //this move will put you into check so is invalid
 	{
-		OutputDebugStringA("self check \n");
+		//OutputDebugStringA("self check \n");
 		return -1;
 	}
 	else //you are not in check so reset previous check status
 	{
-		OutputDebugStringA("not self check \n");
+		//OutputDebugStringA("not self check \n");
 		if (blkTurn)
 		{
 			bCheck = false;
@@ -394,31 +400,33 @@ fin:
 
 	if (checkEnemy) //this move will put your enemy into check
 	{
-		OutputDebugStringA("enemy check \n");
+		//OutputDebugStringA("enemy check \n");
 		if (blkTurn)
 		{
 			wCheck = true;
+			//OutputDebugStringA("wcheck \n");
 		}
 		else
 		{
 			bCheck = true;
+			//OutputDebugStringA("bcheck \n");
 		}
 
 		if (!canBlock) //if there is nothing your enemy can do about being in check
 		{
-			OutputDebugStringA("enemy cannot block \n");
-			return 1; //checkmate //TODO run end game code instead of returning
+			//OutputDebugStringA("enemy cannot block \n");
+			return 1; //checkmate
 		}
 	}
 	else
 	{
-		OutputDebugStringA("not enemy check \n");
+		//OutputDebugStringA("not enemy check \n");
 		if (cannotMove) //if enemy cannot move and is not in check
 		{
-			return 2; //stalemate //TODO run end game code instead of returning
+			return 2; //stalemate
 		}
 	}
-	OutputDebugStringA("normal move \n");
+	//OutputDebugStringA("normal move \n");
 	return 0; //valid move
 }
 
@@ -427,11 +435,18 @@ bool Game::getCurCheck()
 	if (blkTurn)
 	{
 		return bCheck;
+		//OutputDebugStringA("ret bcheck \n");
 	}
 	else 
 	{
 		return wCheck;
+		//OutputDebugStringA("ret wcheck \n");
 	}
+}
+
+bool Game::getBlkTurn()
+{
+	return blkTurn;
 }
 
 void Game::setPotentialI(Piece p)
@@ -439,39 +454,127 @@ void Game::setPotentialI(Piece p)
 	POINT a;
 	if (p.getType() == "pawn")
 	{
+		bool bo = false;
 		if (p.isBlack())
 		{
 			a.x = p.getX();
 			a.y = p.getY() + 1;
-			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			for (Piece ppp : white)
+			{
+				if (ppp.getX() == a.x && ppp.getY() == a.y)
+				{
+					bo = true;
+				}
+			}
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y) && !bo)
+			{
+				potential.push_back(a);
+
+				if (p.checkPawnFirst())
+				{
+					a.y = p.getY() + 2;
+					bo = false;
+					for (Piece ppp : white)
+					{
+						if (ppp.getX() == a.x && ppp.getY() == a.y)
+						{
+							bo = true;
+						}
+					}
+					if (!isBlocked(p.getX(), p.getY(), a.x, a.y) && !bo)
+					{
+						potential.push_back(a);
+					}
+				}
+			}
+			a.y = p.getY() + 1;
+			a.x = p.getX() + 1;
+			bo = false;
+			for (Piece ppp : white)
+			{
+				if (ppp.getX() == a.x && ppp.getY() == a.y)
+				{
+					bo = true;
+				}
+			}
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y) && bo)
 			{
 				potential.push_back(a);
 			}
-			if (p.checkPawnFirst())
+			a.x = p.getX() - 1;
+			bo = false;
+			for (Piece ppp : white)
 			{
-				a.y = p.getY() + 2;
-				if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+				if (ppp.getX() == a.x && ppp.getY() == a.y)
 				{
-					potential.push_back(a);
+					bo = true;
 				}
-				
 			}
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y) && bo)
+			{
+				potential.push_back(a);
+			}
+
 		}
 		else
 		{
 			a.x = p.getX();
 			a.y = p.getY() - 1;
-			if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+			bo = false;
+			for (Piece ppp : black)
+			{
+				if (ppp.getX() == a.x && ppp.getY() == a.y)
+				{
+					bo = true;
+				}
+			}
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y) && !bo)
+			{
+				potential.push_back(a);
+
+				if (p.checkPawnFirst())
+				{
+					a.y = p.getY() - 2;
+					bo = false;
+					for (Piece ppp : black)
+					{
+						if (ppp.getX() == a.x && ppp.getY() == a.y)
+						{
+							bo = true;
+						}
+					}
+					if (!isBlocked(p.getX(), p.getY(), a.x, a.y) && !bo)
+					{
+						potential.push_back(a);
+					}
+				}
+			}
+			a.y = p.getY() - 1;
+			a.x = p.getX() + 1;
+			bo = false;
+			for (Piece ppp : black)
+			{
+				if (ppp.getX() == a.x && ppp.getY() == a.y)
+				{
+					bo = true;
+				}
+			}
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y) && bo)
 			{
 				potential.push_back(a);
 			}
-			if (p.checkPawnFirst())
+			a.x = p.getX() - 1;
+			bo = false;
+			for (Piece ppp : black)
 			{
-				a.y = p.getY() - 2;
-				if (!isBlocked(p.getX(), p.getY(), a.x, a.y))
+				if (ppp.getX() == a.x && ppp.getY() == a.y)
 				{
-					potential.push_back(a);
+					bo = true;
 				}
+			}
+			if (!isBlocked(p.getX(), p.getY(), a.x, a.y) && bo)
+			{
+				potential.push_back(a);
 			}
 		}
 	}

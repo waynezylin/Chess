@@ -26,6 +26,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    Check(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Checkmate(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -144,6 +145,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             case IDD_CHECK:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_CHECK), hWnd, Check);
+                break;
+
+            case IDD_CHECKMATE:
+                DialogBox(hInst, MAKEINTRESOURCE(IDD_CHECKMATE), hWnd, Checkmate);
                 break;
 
             case IDM_EXIT:
@@ -340,7 +345,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PostMessage(hWnd, WM_PAINT, wParam, lParam);
             if (gameHandler.getCurCheck())
             {
-                SetWindowText((HWND)check_text, L"");
                 PostMessage(hWnd, WM_COMMAND, IDD_CHECK, lParam);
             }
             else
@@ -354,7 +358,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PostMessage(hWnd, WM_PAINT, wParam, lParam);
             if (gameHandler.getCurCheck())
             {
-                SetWindowText((HWND)check_text, L"");
                 PostMessage(hWnd, WM_COMMAND, IDD_CHECK, lParam);
             }
             else
@@ -362,6 +365,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 gameHandler.nextTurn();
             }
             break;
+        case 5:
+            clickOutput = 1;
+            PostMessage(hWnd, WM_PAINT, wParam, lParam);
+
+            PostMessage(hWnd, WM_COMMAND, IDD_CHECKMATE, lParam);
+
+            break;
+
+        case 6:
+            clickOutput = 1;
+            PostMessage(hWnd, WM_PAINT, wParam, lParam);
+
+            PostMessage(hWnd, WM_COMMAND, IDD_CHECKMATE, lParam);//TODO change to stalemate
 
         default: break;
         }
@@ -397,7 +413,27 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 INT_PTR CALLBACK Check(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
-    
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+INT_PTR CALLBACK Checkmate(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    LPCSTR text = (gameHandler.getBlkTurn()) ? "Black has checkmated White" : "White has checkmated Black";
+    SetDlgItemTextA(hDlg, checkmate_text, text);
     switch (message)
     {
     case WM_INITDIALOG:
