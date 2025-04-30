@@ -12,6 +12,8 @@ Piece::Piece(int x, int y, bool isBlack, string type)
 	Piece::y = y;
 	Piece::isBlk = isBlack;
 	Piece::type = type;
+	Piece::pawnFirst = true;
+	Piece::enpassant = false;
 }
 
 int Piece::getX()
@@ -52,4 +54,14 @@ void Piece::move(int x, int y)
 {
 	Piece::x = x;
 	Piece::y = y;
+}
+
+bool Piece::checkPawnFirst()
+{
+	return pawnFirst;
+}
+
+void Piece::pawnMove(bool m)
+{
+	pawnFirst = m;
 }

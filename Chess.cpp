@@ -7,6 +7,7 @@
 #include <String>
 #include "Sprite.h"
 #include "Game.h"
+#include "winuser.h"
 
 #define MAX_LOADSTRING 100
 
@@ -18,12 +19,16 @@ bool first = true;
 Game gameHandler = Game();
 POINT mousePos;
 int clickOutput = -1;
+bool stale = false;
+bool complete = false;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Check(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Checkmate(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -131,24 +136,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message)
     {
     case WM_COMMAND:
+    {
+        int wmId = LOWORD(wParam);
+        // Parse the menu selections:
+        switch (wmId)
         {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
+        case IDM_ABOUT:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+            break;
+
+        case IDD_CHECK:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_CHECK), hWnd, Check);
+            break;
+
+        case IDD_CHECKMATE:
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_CHECKMATE), hWnd, Checkmate);
+            break;
+
+        case IDM_EXIT:
+            DestroyWindow(hWnd);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
         }
-        break;
+    }
+    break;
     case WM_PAINT:
-        {
+    {
 
         RECT window;
         window.top = 0;
@@ -161,17 +175,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
 
-        
-                //HDC bb = CreateCompatibleDC(hdc);
-                //HBRUSH blk = (HBRUSH) SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-        
+
+        //HDC bb = CreateCompatibleDC(hdc);
+        //HBRUSH blk = (HBRUSH) SelectObject(hdc, GetStockObject(BLACK_BRUSH));
 
 
-                //// TODO: Add any drawing code that uses hdc here...
+
+        //// TODO: Add any drawing code that uses hdc here...
         if (first || gameHandler.checkTC() || clickOutput == 1)
         {
-            
-            
+            clickOutput = -1;
+
             //ValidateRect(hWnd, &window);
 
 
@@ -202,27 +216,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             first = false;
 
-
-
-            //if (gameHandler.checkPC())
-            {
-                Sprite sp;
-                Piece temp;
-                for (int b = 0; b < gameHandler.getBL(); b++)
-                {
-                    temp = gameHandler.getBlackPieces()[b];
-                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), temp.isBgBlk());
-                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
-                }
-                for (int w = 0; w < gameHandler.getWL(); w++)
-                {
-                    temp = gameHandler.getWhitePieces()[w];
-                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), temp.isBgBlk());
-                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
-                }
-                gameHandler.resetPC();
-
-            }
 
             //if (gameHandler.checkTC())
             {
@@ -257,7 +250,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 //DeleteObject(p1);
                 gameHandler.resetTile();
             }
-            
+
             for (POINT pt : gameHandler.getPotential())
             {
                 HBRUSH p = CreateSolidBrush(RGB(255, 0, 0));
@@ -272,11 +265,49 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 FillRect(hdc, &r, p);
                 DeleteObject(p);
             }
+
+            //if (gameHandler.checkPC())
+            {
+                Sprite sp;
+                Piece temp;
+                int bgc = 0;
+                for (int b = 0; b < gameHandler.getBL(); b++)
+                {
+                    temp = gameHandler.getBlackPieces()[b];
+                    bgc = (temp.isBgBlk()) ? 1 : 0;
+                    for (POINT pot : gameHandler.getPotential())
+                    {
+                        if (pot.x == temp.getX() && pot.y == temp.getY())
+                        {
+                            bgc = 2;
+                        }
+                    }
+                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), bgc);
+                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
+                }
+                for (int w = 0; w < gameHandler.getWL(); w++)
+                {
+                    temp = gameHandler.getWhitePieces()[w];
+                    bgc = (temp.isBgBlk()) ? 1 : 0;
+                    for (POINT pot : gameHandler.getPotential())
+                    {
+                        if (pot.x == temp.getX() && pot.y == temp.getY())
+                        {
+                            bgc = 2;
+                        }
+                    }
+                    sp = Sprite::getSprite(temp.getType(), temp.isBlack(), bgc);
+                    sp.drawSprite(temp.getX(), temp.getY(), hdc);
+                }
+                gameHandler.resetPC();
+
+            }
+
         }
 
         EndPaint(hWnd, &ps);
-        }
-        break;
+    }
+    break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
@@ -296,24 +327,63 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_LBUTTONDOWN:
-        switch (gameHandler.click())
+        if (!complete)
         {
-        case 0:
-            PostMessage(hWnd, WM_PAINT, wParam, lParam);
-            break;
+            switch (gameHandler.click())
+            {
+            case 0:
+                PostMessage(hWnd, WM_PAINT, wParam, lParam);
+                break;
 
-        case 1:
-            clickOutput = 1;
-            PostMessage(hWnd, WM_PAINT, wParam, lParam);
-            break;
-        case 2:
-            PostMessage(hWnd, WM_PAINT, wParam, lParam);
-            clickOutput = -1;
-            break;
+            case 1:
+                clickOutput = 1;
+                PostMessage(hWnd, WM_PAINT, wParam, lParam);
+                break;
+            case 2:
+                PostMessage(hWnd, WM_PAINT, wParam, lParam);
+                clickOutput = -1;
+                break;
 
-        default: break;
+            case 3:
+                clickOutput = 1;
+                PostMessage(hWnd, WM_PAINT, wParam, lParam);
+                if (gameHandler.getCurCheck())
+                {
+                    PostMessage(hWnd, WM_COMMAND, IDD_CHECK, lParam);
+                }
+                else
+                {
+                    gameHandler.nextTurn();
+                }
+                break;
+
+            case 4:
+                clickOutput = 1;
+                PostMessage(hWnd, WM_PAINT, wParam, lParam);
+                if (gameHandler.getCurCheck())
+                {
+                    PostMessage(hWnd, WM_COMMAND, IDD_CHECK, lParam);
+                }
+                else
+                {
+                    gameHandler.nextTurn();
+                }
+                break;
+            case 5:
+                clickOutput = 1;
+                PostMessage(hWnd, WM_PAINT, wParam, lParam);
+                PostMessage(hWnd, WM_COMMAND, IDD_CHECKMATE, lParam);
+                break;
+
+            case 6:
+                clickOutput = 1;
+                stale = true;
+                PostMessage(hWnd, WM_PAINT, wParam, lParam);
+                PostMessage(hWnd, WM_COMMAND, IDD_CHECKMATE, lParam);
+
+            default: break;
+            }
         }
-
         break;
 
     default:
@@ -342,3 +412,52 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
+INT_PTR CALLBACK Check(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+INT_PTR CALLBACK Checkmate(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    complete = true;
+    UNREFERENCED_PARAMETER(lParam);
+    LPCSTR text;
+    if (!stale)
+    {
+        text = (gameHandler.getBlkTurn()) ? "Black has checkmated White" : "White has checkmated Black";
+    }
+    else
+    {
+        text = "Stalemate";
+    }
+    SetDlgItemTextA(hDlg, checkmate_text, text);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            //PostQuitMessage(0);
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
