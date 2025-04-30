@@ -48,9 +48,10 @@ private:
 
 	void setPotential();
 
-	bool isBlocked(int x1, int y1, int x2, int y2);
+	bool isBlocked(Piece p, int x2, int y2);
 
-
+	Piece& getKing(bool self);
+	
 
 };
 

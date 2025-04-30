@@ -61,7 +61,7 @@ bool Piece::checkPawnFirst()
 	return pawnFirst;
 }
 
-void Piece::pawnMoved()
+void Piece::pawnMove(bool m)
 {
-	pawnFirst = false;
+	pawnFirst = m;
 }
