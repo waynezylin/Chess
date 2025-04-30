@@ -1,8 +1,2 @@
-﻿  Game.cpp
-D:\Coding\Chess\Chess\Game.cpp(49,17): warning C4244: '=': conversion from 'double' to 'LONG', possible loss of data
-D:\Coding\Chess\Chess\Game.cpp(50,17): warning C4244: '=': conversion from 'double' to 'LONG', possible loss of data
-D:\Coding\Chess\Chess\Game.cpp(81,13): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Coding\Chess\Chess\Game.cpp(229,19): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
-D:\Coding\Chess\Chess\Game.cpp(235,19): warning C4267: 'return': conversion from 'size_t' to 'int', possible loss of data
-D:\Coding\Chess\Chess\Game.cpp(990): warning C4715: 'Game::getKing': not all control paths return a value
+﻿  Chess.cpp
   Chess.vcxproj -> D:\Coding\Chess\Chess\x64\Debug\Chess.exe

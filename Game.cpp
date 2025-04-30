@@ -366,12 +366,12 @@ fin:
 	//OutputDebugStringA("wrapping up check king \n");
 	if (checkSelf) //this move will put you into check so is invalid
 	{
-		OutputDebugStringA("self check \n");
+		//OutputDebugStringA("self check \n");
 		return -1;
 	}
 	else //you are not in check so reset previous check status
 	{
-		OutputDebugStringA("not self check \n");
+		//OutputDebugStringA("not self check \n");
 		if (blkTurn)
 		{
 			bCheck = false;
@@ -384,7 +384,7 @@ fin:
 
 	if (checkEnemy) //this move will put your enemy into check
 	{
-		OutputDebugStringA("enemy check \n");
+		//OutputDebugStringA("enemy check \n");
 		if (blkTurn)
 		{
 			wCheck = true;
@@ -398,19 +398,19 @@ fin:
 
 		if (!canBlock) //if there is nothing your enemy can do about being in check
 		{
-			OutputDebugStringA("enemy cannot block \n");
+			//OutputDebugStringA("enemy cannot block \n");
 			return 1; //checkmate
 		}
 	}
 	else
 	{
-		OutputDebugStringA("not enemy check \n");
+		//OutputDebugStringA("not enemy check \n");
 		if (cannotMove) //if enemy cannot move and is not in check
 		{
 			return 2; //stalemate
 		}
 	}
-	OutputDebugStringA("normal move \n");
+	//OutputDebugStringA("normal move \n");
 	return 0; //valid move
 }
 
