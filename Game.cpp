@@ -37,6 +37,7 @@ Game::Game()
 	/*bS = sizeof(black) / sizeof(black[0]);
 	wS = sizeof(white) / sizeof(white[0]);*/
 	selectedPos = -1;
+	last = Piece();
 }
 
 void Game::update()
@@ -144,14 +145,10 @@ int Game::click()
 			int tempX = clickP[selectedPos].getX();
 			int tempY = clickP[selectedPos].getY();
 			bool pfc = false;
+			int ep;
 			switch (occupied)
 			{
 			case -1:
-				if (clickP[selectedPos].getType() == "pawn" && clickP[selectedPos].checkPawnFirst() == true)
-				{
-					clickP[selectedPos].pawnMove(false);
-					pfc = true;
-				}
 				clickP[selectedPos].move(tile.x, tile.y);
 				retVal = 3; //piece moved to an empty space. advance turn
 				break;
@@ -168,12 +165,27 @@ int Game::click()
 					temp = black.at(atkPos);
 					black.erase(black.begin() + atkPos);
 				}
-				clickP[selectedPos].move(tile.x, tile.y);
+				ep = (blkTurn) ? 1 : -1;
+				if (last.equals(temp) && temp.enpassant && clickP[selectedPos].getType() == "pawn")
+				{
+					clickP[selectedPos].move(tile.x, tile.y + ep);
+				}
+				else
+				{
+					clickP[selectedPos].move(tile.x, tile.y);
+				}
+				
 				retVal = 4; //piece consumed and taken over position. advance turn
 				break;
 
 			default:
 				break;
+			}
+
+			if (clickP[selectedPos].getType() == "pawn" && clickP[selectedPos].checkPawnFirst() == true)
+			{
+				clickP[selectedPos].pawnMove(false);
+				pfc = true;
 			}
 
 			int ck = checkKing();
@@ -205,10 +217,13 @@ int Game::click()
 			{
 				retVal = 6;
 			}
+			last = clickP[selectedPos];
 			resetPotential();
 			selectedPos = -1;
 		}
 	}
+
+
 
 	return retVal;
 }
@@ -499,6 +514,25 @@ void Game::setPotentialI(Piece p)
 				potential.push_back(a);
 			}
 
+			a.y = p.getY();
+			a.x = p.getX() + 1;
+			for (Piece ppp : white)
+			{
+				if (ppp.getX() == a.x && ppp.getY() == a.y && ppp.enpassant && last.equals(ppp))
+				{
+					potential.push_back(a);
+				}
+			}
+			a.y = p.getY();
+			a.x = p.getX() - 1;
+			for (Piece ppp : white)
+			{
+				if (ppp.getX() == a.x && ppp.getY() == a.y && ppp.enpassant && last.equals(ppp))
+				{
+					potential.push_back(a);
+				}
+			}
+
 		}
 		else
 		{
@@ -559,6 +593,25 @@ void Game::setPotentialI(Piece p)
 			if (!isBlocked(p, a.x, a.y) && bo)
 			{
 				potential.push_back(a);
+			}
+
+			a.y = p.getY();
+			a.x = p.getX() + 1;
+			for (Piece ppp : black)
+			{
+				if (ppp.getX() == a.x && ppp.getY() == a.y && ppp.enpassant && last.equals(ppp))
+				{
+					potential.push_back(a);
+				}
+			}
+			a.y = p.getY();
+			a.x = p.getX() - 1;
+			for (Piece ppp : black)
+			{
+				if (ppp.getX() == a.x && ppp.getY() == a.y && ppp.enpassant && last.equals(ppp))
+				{
+					potential.push_back(a);
+				}
 			}
 		}
 	}

@@ -4,6 +4,10 @@ using namespace std;
 
 Piece::Piece()
 {
+	Piece::x = -1;
+	Piece::y = -1;
+	Piece::isBlk = false;
+	Piece::type = "null";
 }
 
 Piece::Piece(int x, int y, bool isBlack, string type)
@@ -52,6 +56,14 @@ bool Piece::isBgBlk()
 
 void Piece::move(int x, int y)
 {
+	if (Piece::type == "pawn" && pawnFirst && abs(Piece::y - y) == 2)
+	{
+		enpassant = true;
+	}
+	else 
+	{
+		enpassant = false;
+	}
 	Piece::x = x;
 	Piece::y = y;
 }
@@ -64,4 +76,22 @@ bool Piece::checkPawnFirst()
 void Piece::pawnMove(bool m)
 {
 	pawnFirst = m;
+}
+
+bool Piece::equals(Piece p)
+{
+	if (p.type == Piece::type)
+	{
+		if (p.x == Piece::x)
+		{
+			if (p.y == Piece::y)
+			{
+				if (p.isBlk == Piece::isBlk)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }

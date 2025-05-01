@@ -21,6 +21,8 @@ public:
 	void pawnMove(bool m);
 	bool enpassant;
 
+	bool equals(Piece p);
+
 private:
 	bool isBlk;
 	string type;

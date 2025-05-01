@@ -52,7 +52,7 @@ private:
 
 	Piece& getKing(bool self);
 	
-
+	Piece last;
 };
 
  
